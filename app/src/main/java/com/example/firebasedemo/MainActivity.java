@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<HomeroomClass> homeroomClasses;
     private DatabaseReference mDatabase;
     HomeroomClassAdapter homeroomClassAdapter;
+    RecyclerView rvHomeroomClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         homeroomClassAdapter = new HomeroomClassAdapter(homeroomClasses);
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        final RecyclerView rvHomeroomClass = (RecyclerView) findViewById(R.id.rvHomeroomClass);
+        rvHomeroomClass = (RecyclerView) findViewById(R.id.rvHomeroomClass);
 
         // Initialize contacts
         // Create adapter passing in the sample user data
@@ -68,10 +69,6 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(Void aVoid) {
                                 Toast.makeText(MainActivity.this, "woohoo", Toast.LENGTH_SHORT).show();
-                                homeroomClasses.add(homeroomClass);
-                                homeroomClassAdapter.notifyDataSetChanged();
-
-
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
@@ -88,6 +85,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    void insertClass(String className, String classTeacherName) {
+        for (int i = 0; i < homeroomClasses.size(); i++) {
+            if (homeroomClasses.get(i).getClassName() == className) {
+                return;
+            }
+        }
+        HomeroomClass homeroomClass = new HomeroomClass(className, classTeacherName);
+        homeroomClasses.add(homeroomClass);
+    }
+
     void loadHomeRoomClasses() {
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference ref = database.getReference("classes");
@@ -101,11 +109,12 @@ public class MainActivity extends AppCompatActivity {
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
                         String className = (String) messageSnapshot.child("className").getValue().toString();
                         String classTeacherName = (String) messageSnapshot.child("classTeacherName").getValue().toString();
-                        HomeroomClass homeroomClass = new HomeroomClass(className, classTeacherName);
-                        homeroomClasses.add(homeroomClass);
+                        insertClass(className, classTeacherName);
                     }
-                    homeroomClassAdapter.notifyDataSetChanged();
-                }
+                homeroomClassAdapter.notifyDataSetChanged();
+                rvHomeroomClass.swapAdapter(homeroomClassAdapter, true);
+                rvHomeroomClass.scrollBy(0,0);
+            }
 
 
 
